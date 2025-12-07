@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+qdrant-client
+openai
+psycopg2-binary
+python-dotenv
+asyncpg # Added for better async Postgres integration than psycopg2-binary
+pydantic-settings # For FastAPI settings management
+fastapi-limiter

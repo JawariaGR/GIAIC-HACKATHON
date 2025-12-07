@@ -1,0 +1,26 @@
+# This file is for Render.com deployment configuration.
+# It assumes your FastAPI application is containerized with a Dockerfile
+# and accessible at /app/src/main.py:app.
+
+services:
+  - type: web
+    name: rag-chatbot-backend
+    env: python
+    buildCommand: "pip install -r requirements.txt" # This is for local build, Render handles Docker build
+    startCommand: "uvicorn src.main:app --host 0.0.0.0 --port 8000"
+    dockerfilePath: Dockerfile # Specify the Dockerfile to use
+    rootDir: backend/ # Specify the root directory for the service
+    healthCheckPath: / # Or a more specific health check endpoint if available
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false # Set in Render environment variables, do not commit
+      - key: NEON_POSTGRES_URL
+        sync: false # Set in Render environment variables
+      - key: QDRANT_URL
+        sync: false # Set in Render environment variables
+      - key: QDRANT_API_KEY
+        sync: false # Set in Render environment variables
+      - key: REDIS_URL # For FastAPI-Limiter
+        sync: false # Set in Render environment variables
+      - key: PORT
+        value: 8000 # Render injects PORT, but explicit is good

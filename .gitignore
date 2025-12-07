@@ -1,0 +1,35 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+dist/
+*.egg-info/
+build/
+ros2_ws/
+
+# Node.js
+node_modules/
+build/
+dist/
+.next/
+.npm/
+
+# Docusaurus
+.docusaurus/
+.cache-loader/
+website/build/

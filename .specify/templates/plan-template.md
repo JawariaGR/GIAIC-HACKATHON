@@ -31,7 +31,11 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- [ ] **I. Beginner-Friendly & Python-Based**: Is the proposed solution accessible to students? Is Python the primary language?
+- [ ] **II. Engineering-Focused & Hands-On**: Does the plan include practical labs, code, and simulation tasks?
+- [ ] **III. Modular & Structured Learning Path**: Does this feature fit logically within the 4-module structure?
+- [ ] **IV. End-to-End System Focus**: Does this work contribute to the final integrated capstone project?
+- [ ] **V. Simulation-First with Digital Twins**: Does the plan prioritize simulation for development and testing?
 
 ## Project Structure
 

@@ -1,0 +1,145 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "RAG Chatbot API",
+    "version": "1.0.0",
+    "description": "API for interacting with the integrated RAG chatbot."
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "Base URL for the chatbot API"
+    }
+    
+  ],
+  "paths": {
+    "/chat": {
+      "post": {
+        "summary": "Submit a chat message to the RAG chatbot",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful chat response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ChatRequest": {
+        "type": "object",
+        "required": [
+          "session_id",
+          "user_id",
+          "message",
+          "mode"
+        ],
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the chat session. If a new session, backend will initialize."
+          },
+          "user_id": {
+            "type": "string",
+            "description": "Anonymous user identifier from client-side local storage."
+          },
+          "message": {
+            "type": "string",
+            "description": "The user's message to the chatbot."
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "full_book",
+              "selection"
+            ],
+            "description": "The retrieval mode for the chatbot."
+          },
+          "selected_text": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional: User-highlighted text, required if mode is 'selection'."
+          }
+        },
+        "example": {
+          "session_id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+          "user_id": "user123",
+          "message": "What is a URDF file?",
+          "mode": "full_book",
+          "selected_text": null
+        }
+      },
+      "ChatResponse": {
+        "type": "object",
+        "required": [
+          "session_id",
+          "message_id",
+          "response",
+          "timestamp"
+        ],
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the chat session."
+          },
+          "message_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the assistant's response message."
+          },
+          "response": {
+            "type": "string",
+            "description": "The chatbot's generated response."
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of the assistant's response."
+          },
+          "context_used": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "description": "Optional: References to the book content chunks used to generate the response."
+          }
+        },
+        "example": {
+          "session_id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+          "message_id": "f1e2d3c4-b5a6-0987-6543-210fedcba987",
+          "response": "A URDF (Unified Robot Description Format) file is an XML format for representing a robot model...",
+          "timestamp": "2025-12-07T12:34:56Z",
+          "context_used": [
+            "module1-ch04-urdf-overview"
+          ]
+        }
+      }
+    }
+  }
+}
