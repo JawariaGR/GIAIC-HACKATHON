@@ -13,15 +13,16 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: 'https://physical-ai-book.github.io',
+  url: 'https://jawar.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/',
+  baseUrl: '/physical_Ai_book/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'physical-ai-book', // Usually your GitHub org/user name.
-  projectName: 'physical-ai-book.github.io', // Usually your repo name.
+  organizationName: 'jawar', // Usually your GitHub org/user name.
+  projectName: 'physical_Ai_book', // Usually your repo name.
+  deploymentBranch: 'gh-pages',
 
   customFields: {
     CHATBOT_API_BASE_URL: process.env.CHATBOT_API_BASE_URL || 'http://localhost:8000/chat',
@@ -47,7 +48,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/physical-ai-book/physical-ai-book.github.io/tree/main/',
+            'https://github.com/jawar/physical_Ai_book/tree/main/',
         },
         blog: false, // Disable the blog feature
         theme: {
