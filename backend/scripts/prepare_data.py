@@ -8,7 +8,7 @@ from typing import List, Dict, Any
 from backend.scripts.extract_book_content import extract_content_from_markdown
 from backend.src.core.text_chunker import chunk_text
 from backend.src.core.embedding_generator import EmbeddingGenerator
-from backend.src.services.qdrant_service import QdrantService
+from backend.src.services.chromadb_service import ChromaDBService
 
 def prepare_data_pipeline(book_path: str, collection_name: str):
     """
@@ -16,7 +16,7 @@ def prepare_data_pipeline(book_path: str, collection_name: str):
 
     Args:
         book_path (str): Path to the root directory of the book's markdown content.
-        collection_name (str): Name of the Qdrant collection to use.
+        collection_name (str): Name of the ChromaDB collection to use.
     """
     book_root_path = Path(book_path)
     if not book_root_path.is_dir():
@@ -52,7 +52,7 @@ def prepare_data_pipeline(book_path: str, collection_name: str):
         for chunk in doc_chunks:
             chunk["id"] = f"{doc['file_path']}_{chunk_id_counter}" # Unique ID for each chunk
             chunk["metadata"] = {"file_path": doc["file_path"], "original_content_length": len(doc["content"]) }
-            chunk["content"] = chunk.pop("content") # Rename 'content' to 'text' if needed by Qdrant payload directly
+            chunk["content"] = chunk.pop("content")
             all_chunks.append(chunk)
             chunk_id_counter += 1
     print(f"Total {len(all_chunks)} chunks created.")
@@ -68,21 +68,24 @@ def prepare_data_pipeline(book_path: str, collection_name: str):
     embeddings = embedding_generator.generate_embeddings(texts_to_embed)
     print(f"Generated {len(embeddings)} embeddings.")
 
-    # Prepare payloads for Qdrant
-    qdrant_payloads = []
+    # Prepare payloads and ids for ChromaDB
+    chroma_payloads = []
+    chroma_ids = []
     for i, chunk in enumerate(all_chunks):
         payload = {
             "text": chunk["content"],
             "file_path": chunk["metadata"]["file_path"],
-            "chunk_id_in_file": chunk["id"], # Keep a reference to the chunk ID within the file
+            "chunk_id_in_file": chunk["id"],
         }
-        qdrant_payloads.append(payload)
+        chroma_payloads.append(payload)
+        chroma_ids.append(str(i))
 
-    # 4. Upload to Qdrant
-    print("\n--- Step 4: Uploading vectors to Qdrant ---")
-    qdrant_service = QdrantService(collection_name=collection_name)
-    qdrant_service.recreate_collection() # Ensure a fresh collection for new data
-    qdrant_service.upsert_vectors(embeddings, qdrant_payloads)
+
+    # 4. Upload to ChromaDB
+    print("\n--- Step 4: Uploading vectors to ChromaDB ---")
+    chroma_service = ChromaDBService(collection_name=collection_name)
+    chroma_service.recreate_collection(collection_name)
+    chroma_service.upsert_vectors(embeddings, chroma_payloads, chroma_ids)
     print("Data preparation pipeline completed successfully.")
 
 
@@ -91,7 +94,7 @@ if __name__ == "__main__":
     parser.add_argument("--book_path", type=str, required=True,
                         help="Path to the root directory of the book's markdown content.")
     parser.add_argument("--collection_name", type=str, default="book_rag_collection",
-                        help="Name of the Qdrant collection to store vectors.")
+                        help="Name of the ChromaDB collection to store vectors.")
     args = parser.parse_args()
 
     try:

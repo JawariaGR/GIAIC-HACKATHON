@@ -1,10 +1,15 @@
 from typing import List, Dict, Any
 from backend.src.core.embedding_generator import EmbeddingGenerator
-from backend.src.services.qdrant_service import QdrantService
+from backend.src.services.chromadb_service import ChromaDBService
+
+class RAGRetriever:
+    def __init__(self, collection_name: str):
+        self.embedding_generator = EmbeddingGenerator()
+        self.db_service = ChromaDBService(collection_name=collection_name)
 
     async def retrieve_selected_text(self, selected_text: str) -> List[Dict[str, Any]]:
         """
-        Processes selected text directly for retrieval. No Qdrant search in this mode.
+        Processes selected text directly for retrieval. No DB search in this mode.
 
         Args:
             selected_text (str): The text selected by the user.
@@ -16,18 +21,16 @@ from backend.src.services.qdrant_service import QdrantService
         if not selected_text:
             return []
         
-        # In this mode, the selected text itself is the primary context.
-        # We can assign a dummy source/chunk_id for tracking.
         return [{
             "content": selected_text,
             "source": "user_selection",
             "chunk_id": "user_selection",
-            "score": 1.0 # Max score as it's directly provided context
+            "score": 1.0
         }]
 
     async def retrieve_full_book(self, query: str, limit: int = 5) -> List[Dict[str, Any]]:
         """
-        Retrieves relevant document chunks from the entire book content in Qdrant
+        Retrieves relevant document chunks from the entire book content in ChromaDB
         based on the user's query.
 
         Args:
@@ -44,12 +47,11 @@ from backend.src.services.qdrant_service import QdrantService
         print(f"Generating embedding for query: '{query}'")
         query_embedding = self.embedding_generator.generate_embeddings([query])[0]
 
-        print(f"Searching Qdrant for top {limit} relevant chunks in collection '{self.qdrant_service.collection_name}'")
-        search_results = self.qdrant_service.search(query_embedding, limit=limit)
+        print(f"Searching ChromaDB for top {limit} relevant chunks in collection '{self.db_service.collection.name}'")
+        search_results = self.db_service.query_points(query_embedding, limit=limit)
 
         retrieved_chunks = []
         for result in search_results:
-            # The 'payload' contains the original text and metadata
             retrieved_chunks.append({
                 "content": result["payload"].get("text"),
                 "source": result["payload"].get("file_path"),
@@ -61,13 +63,13 @@ from backend.src.services.qdrant_service import QdrantService
         return retrieved_chunks
 
 if __name__ == "__main__":
+    import asyncio
+    
     async def test_retriever():
-        # Ensure QDRANT_URL, QDRANT_API_KEY, and OPENAI_API_KEY are set
-        # and that the Qdrant collection 'book_rag_collection' has some data (e.g., from prepare_data.py)
-        COLLECTION_NAME = "book_rag_collection" # Must match what's used in prepare_data.py
+        COLLECTION_NAME = "book_rag_collection"
         
         try:
-            retriever = RAGRetriever(qdrant_collection_name=COLLECTION_NAME)
+            retriever = RAGRetriever(collection_name=COLLECTION_NAME)
             
             sample_query = "What is a URDF file?"
             print(f"\n--- Testing full book retrieval for query: '{sample_query}' ---")
@@ -77,7 +79,7 @@ if __name__ == "__main__":
                 for i, chunk in enumerate(results):
                     print(f"Chunk {i+1} (Score: {chunk['score']:.2f}):")
                     print(f"  Source: {chunk['source']}")
-                    print(f"  Content: {chunk['content'][:200]}...") # Print first 200 chars
+                    print(f"  Content: {chunk['content'][:200]}...")
             else:
                 print("No chunks retrieved.")
 
@@ -86,5 +88,4 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"An unexpected error occurred: {e}")
 
-    import asyncio
     asyncio.run(test_retriever())
