@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 # Initialize services
 try:
     chat_history_service = ChatHistoryService()
-    rag_retriever = RAGRetriever(qdrant_collection_name="book_rag_collection")
+    rag_retriever = RAGRetriever(collection_name="book_rag_collection")
     openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     if not openai_client.api_key:
         raise ValueError("OPENAI_API_KEY environment variable not set.")
@@ -104,7 +104,6 @@ async def get_rag_response(user_message: str, retrieved_context: List[str]) -> s
 
 from fastapi_limiter.depends import RateLimiter
 
-@router.post("/", response_model=ChatResponse)
 @router.post("/", response_model=ChatResponse, dependencies=[Depends(RateLimiter(times=5, seconds=1))]) # 5 requests per second
 async def chat_endpoint(request: ChatRequest):
     if not chat_history_service or not rag_retriever or not openai_client:
@@ -231,5 +230,7 @@ async def startup_event():
         try:
             await chat_history_service.init_db()
             logger.info("Database tables initialized successfully on startup.")
+        except ConnectionError as e:
+            logger.error(f"Failed to initialize database tables on startup due to connection error: {e}")
         except Exception as e:
             logger.error(f"Failed to initialize database tables on startup: {e}")
