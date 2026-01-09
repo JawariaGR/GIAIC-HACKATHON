@@ -8,7 +8,7 @@ from enum import Enum
 # Define Enums for chat mode and sender role
 class ChatMode(str, Enum):
     FULL_BOOK = "full_book"
-    SELECTION = "selection"
+
 
 class SenderRole(str, Enum):
     USER = "user"

@@ -7,7 +7,7 @@ services:
     name: rag-chatbot-backend
     env: python
     buildCommand: "pip install -r requirements.txt" # This is for local build, Render handles Docker build
-    startCommand: "uvicorn src.main:app --host 0.0.0.0 --port 8000"
+    startCommand: "uvicorn backend.src.main:app --host 0.0.0.0 --port 8000"
     dockerfilePath: Dockerfile # Specify the Dockerfile to use
     rootDir: backend/ # Specify the root directory for the service
     healthCheckPath: / # Or a more specific health check endpoint if available

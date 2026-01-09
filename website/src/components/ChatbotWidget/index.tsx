@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import styles from './styles.module.css'; // Assuming a CSS module for styling
 import { v4 as uuidv4 } from 'uuid'; // For generating unique session/message IDs
-import { useSelectedText } from '@site/src/contexts/SelectedTextContext'; // Import the hook
+
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext'; // Import useDocusaurusContext
 
 interface ChatMessage {
@@ -18,7 +18,7 @@ interface ChatRequest {
   user_id: string;
   message: string;
   mode: 'full_book' | 'selection';
-  selected_text?: string | null;
+
 }
 
 interface ChatResponse {
@@ -40,9 +40,9 @@ const ChatbotWidget: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [sessionId, setSessionId] = useState<string | undefined>(undefined);
   const [userId, setUserId] = useState<string>(''); // Anonymous user ID
-  const [chatMode, setChatMode] = useState<'full_book' | 'selection'>('full_book'); // New state for chat mode
+  const chatMode: 'full_book' | 'selection' = 'full_book'; // Chat mode is now always 'full_book'
 
-  const { selectedText, setSelectedText } = useSelectedText(); // Use the hook
+
 
   useEffect(() => {
     // Initialize or retrieve anonymous user ID from local storage
@@ -82,10 +82,7 @@ const ChatbotWidget: React.FC = () => {
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
-    // Clear selected text when closing chat
-    if (isOpen) {
-      setSelectedText(null);
-    }
+
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,11 +92,7 @@ const ChatbotWidget: React.FC = () => {
   const sendMessage = async () => {
     if (inputValue.trim() === '') return;
 
-    // If in selection mode but no text is selected, prevent sending
-    if (chatMode === 'selection' && !selectedText) {
-      alert('Please select some text in the book before asking a question in selection mode.');
-      return;
-    }
+
 
     const newUserMessage: ChatMessage = {
       message_id: uuidv4(),
@@ -115,7 +108,6 @@ const ChatbotWidget: React.FC = () => {
       user_id: userId,
       message: inputValue,
       mode: chatMode,
-      selected_text: chatMode === 'selection' ? selectedText : null,
     };
 
     try {
@@ -161,7 +153,7 @@ const ChatbotWidget: React.FC = () => {
     }
 
     setInputValue('');
-    setSelectedText(null); // Clear selected text after sending message
+
   };
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -170,27 +162,7 @@ const ChatbotWidget: React.FC = () => {
     }
   };
 
-  const clearChatHistory = async () => {
-    if (!sessionId) return;
 
-    try {
-      const response = await fetch(`${CHATBOT_API_BASE_URL}/reset/${sessionId}`, {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      setMessages([]); // Clear local messages
-      setSessionId(undefined); // Clear session ID
-      localStorage.removeItem(`chatbot_session_id_${userId}`); // Remove from local storage
-      alert('Chat history cleared!');
-    } catch (error) {
-      console.error('Error clearing chat history:', error);
-      alert('Failed to clear chat history.');
-    }
-  };
 
   return (
     <div className={styles.chatbotContainer}>
@@ -201,26 +173,7 @@ const ChatbotWidget: React.FC = () => {
         <div className={styles.chatWindow}>
           <div className={styles.chatHeader}>
             <h3>Book Chatbot</h3>
-            <div className={styles.modeToggle}>
-              <button
-                className={`${styles.modeButton} ${chatMode === 'full_book' ? styles.activeMode : ''}`}
-                onClick={() => {
-                  setChatMode('full_book');
-                  setSelectedText(null); // Clear selected text when switching mode
-                }}
-              >
-                Full Book
-              </button>
-              <button
-                className={`${styles.modeButton} ${chatMode === 'selection' ? styles.activeMode : ''}`}
-                onClick={() => setChatMode('selection')}
-              >
-                Selection
-              </button>
-              <button className={styles.modeButton} onClick={clearChatHistory}>
-                Clear History
-              </button>
-            </div>
+            
             <button onClick={toggleChat}>X</button>
           </div>
           <div className={styles.chatMessages}>
@@ -234,11 +187,7 @@ const ChatbotWidget: React.FC = () => {
             ))}
           </div>
           <div className={styles.chatInput}>
-            {chatMode === 'selection' && selectedText && (
-              <div className={styles.selectedTextDisplay}>
-                Selected: "{selectedText.substring(0, 50)}..."
-              </div>
-            )}
+
             <input
               type="text"
               value={inputValue}
